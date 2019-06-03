@@ -2,7 +2,6 @@ import redis
 import settings
 import helpers
 import cv2
-import numpy as np
 import argparse
 import json
 import uuid
@@ -48,11 +47,12 @@ def preprocess(path, output_width, output_height):
     return image
 
 
-
-def image_enqueue(image):
-    image = preprocess(image, settings.IMAGE_WIDTH,
+def image_enqueue(image_path):
+    image = preprocess(image_path, settings.IMAGE_WIDTH,
                        settings.IMAGE_HEIGHT)
 
+    # NHWC -> NCWH
+    image = image.transpose(2, 0, 1)
     # ensure our NumPy array is C-contiguous as well,
     # otherwise we won't be able to serialize it
     image = image.copy(order="C")
@@ -61,7 +61,7 @@ def image_enqueue(image):
     # classification ID + image to the queue
     k = str(uuid.uuid4())
     image = helpers.base64_encode_image(image)
-    d = {"id": k, "image": image}
+    d = {"id": k, "path": image_path, "image": image}
     DB.rpush(settings.IMAGE_QUEUE, json.dumps(d))
 
 

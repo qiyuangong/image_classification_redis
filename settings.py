@@ -9,10 +9,11 @@ IMAGE_WIDTH = 224
 IMAGE_HEIGHT = 224
 RESIZE_MIN = 256
 IMAGE_CHANS = 3
-IMAGE_DTYPE = "float32"
+IMAGE_DTYPE = "uint8"
 
 # initialize constants used for server queuing
 IMAGE_QUEUE = "image_queue"
+PREDICT_QUEUE = "predict_queue"
 BATCH_SIZE = 4
 SERVER_SLEEP = 0.25
 CLIENT_SLEEP = 0.25

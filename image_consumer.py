@@ -19,7 +19,8 @@ def classify_process(model_path):
     # substitute in your own networks just as easily)
     print("* Loading model...")
     model = InferenceModel()
-    model.load(model_path)
+    model.load_openvino(model_path,
+                        weight_path=model_path[:model_path.rindex(".")] + ".bin")
     print("* Model loaded")
 
     # continually pool for new images to classify
@@ -52,23 +53,25 @@ def classify_process(model_path):
         # check to see if we need to process the batch
         if len(imageIDs) > 0:
             # classify the batch
+            batch = np.expand_dims(batch, axis=0)
             print("* Batch size: {}".format(batch.shape))
-            results = model.predict(batch)
+            # Output is [1, 4, 1000]
+            results = model.predict(batch)[0]
 
             # loop over the image IDs and their corresponding set of
             # results from our model
             for (imageID, resultSet) in zip(imageIDs, results):
                 # initialize the list of output predictions
-                output = []
+                output = {}
                 # loop over the results and add them to the list of
                 # output predictions
-                for (imagenetID, label, prob) in resultSet:
-                    r = {"label": label, "probability": float(prob)}
-                    output.append(r)
-
+                # Top 1
+                max_index = np.argmax(resultSet)
+                output["Top-1"] = str(max_index)
+                output["id"] = imageID
                 # store the output predictions in the database, using
                 # the image ID as the key so we can fetch the results
-                DB.set(imageID, json.dumps(output))
+                DB.lpush(settings.PREDICT_QUEUE, json.dumps(output))
 
             # remove the set of images from our queue
             DB.ltrim(settings.IMAGE_QUEUE, len(imageIDs), -1)
