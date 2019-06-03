@@ -14,7 +14,7 @@ Basic Roles:
 
 1. Message Queue: Redis
 2. Image Producer: Push images into Redis
-3. Image Customer: Pop images from Redis, make prediction and push results into Redis.
+3. Image Consumer: Pop images from Redis, make prediction. +Then, push results into Redis.
 
 
 # Reference
