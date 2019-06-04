@@ -7,6 +7,7 @@ import redis
 import time
 import json
 import argparse
+from pyspark.sql import SparkSession
 
 
 DB = redis.StrictRedis(host=settings.REDIS_HOST,
@@ -33,7 +34,6 @@ def classify_process(model_path):
         batch = None
 
         # loop over the queue
-        start_time = time.time()
         for q in queue:
             # deserialize the object and obtain the input image
             q = json.loads(q.decode("utf-8"))
@@ -50,7 +50,7 @@ def classify_process(model_path):
 
             # update the list of image IDs
             imageIDs.append(q["id"])
-        print("* Pop from redis %d ms" % int(round((time.time() - start_time) * 1000)))
+
         # check to see if we need to process the batch
         if len(imageIDs) > 0:
             # classify the batch
@@ -58,7 +58,7 @@ def classify_process(model_path):
             print("* Batch size: {}".format(batch.shape))
             # Output is [1, 4, 1000]
             results = model.predict(batch)[0]
-            print("* Predict a batch %d ms" % int(round((time.time() - start_time) * 1000)))
+
             # loop over the image IDs and their corresponding set of
             # results from our model
             for (imageID, resultSet) in zip(imageIDs, results):
@@ -75,7 +75,6 @@ def classify_process(model_path):
                 DB.lpush(settings.PREDICT_QUEUE, json.dumps(output))
 
             # remove the set of images from our queue
-            print("* Total time used is %d ms" % int(round((time.time() - start_time) * 1000)))
             DB.ltrim(settings.IMAGE_QUEUE, len(imageIDs), -1)
 
         # sleep for a small amount
@@ -86,4 +85,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', help="Zoo model path")
     args = parser.parse_args()
+
+    spark = SparkSession \
+        .builder \
+        .appName("Streaming Image Consumer") \
+        .config("spark.redis.host", settings.REDIS_HOST) \
+        .config("spark.redis.port", settings.REDIS_PORT) \
+        .getOrCreate()
+
+    streaming = spark.readStream.format("org.apache.spark.sql.redis").option("list", settings.IMAGE_QUEUE).load()
+    streaming.show()
+
     classify_process(args.model_path)

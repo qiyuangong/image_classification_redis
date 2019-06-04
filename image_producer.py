@@ -5,6 +5,7 @@ import cv2
 import argparse
 import json
 import uuid
+import time
 from os import listdir, rename, mkdir, remove
 from os.path import isfile, join
 
@@ -48,9 +49,10 @@ def preprocess(path, output_width, output_height):
 
 
 def image_enqueue(image_path):
+    start_time = time.time()
     image = preprocess(image_path, settings.IMAGE_WIDTH,
                        settings.IMAGE_HEIGHT)
-
+    print("Pre-processing %d ms" % int(round((time.time() - start_time) * 1000)))
     # NHWC -> NCWH
     image = image.transpose(2, 0, 1)
     # ensure our NumPy array is C-contiguous as well,
@@ -63,6 +65,7 @@ def image_enqueue(image_path):
     image = helpers.base64_encode_image(image)
     d = {"id": k, "path": image_path, "image": image}
     DB.rpush(settings.IMAGE_QUEUE, json.dumps(d))
+    print("Total %d ms" % int(round((time.time() - start_time) * 1000)))
 
 
 def images_enqueue(dir_path):
