@@ -68,6 +68,7 @@ def classify_process(model_path):
                 max_index = np.argmax(resultSet)
                 output["Top-1"] = str(max_index)
                 output["id"] = imageID
+                print("* Predict result " + str(output))
                 # store the output predictions in the database, using
                 # the image ID as the key so we can fetch the results
                 DB.lpush(settings.PREDICT_QUEUE, json.dumps(output))

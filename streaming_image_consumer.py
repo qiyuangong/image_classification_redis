@@ -4,7 +4,6 @@ from zoo.pipeline.inference import InferenceModel
 import settings
 import helpers
 import redis
-import time
 import json
 import argparse
 from pyspark.sql import SparkSession
@@ -15,14 +14,16 @@ DB = redis.StrictRedis(host=settings.REDIS_HOST,
                        port=settings.REDIS_PORT, db=settings.REDIS_DB)
 
 
-def classify_process(stream_batch):
+def classify_process(stream_batch, batch_id):
+    # Covert to List[Row]
+    stream_batch = stream_batch.collect()
+
     image_ids = []
     batch = None
     # loop over the queue
     for q in stream_batch:
         # deserialize the object and obtain the input image
-        q = json.loads(q.decode("utf-8"))
-        image = helpers.base64_decode_image(q["image"],
+        image = helpers.base64_decode_image(q['image'],
                                             settings.IMAGE_DTYPE,
                                             (1, settings.IMAGE_HEIGHT, settings.IMAGE_WIDTH,
                                              settings.IMAGE_CHANS))
@@ -46,7 +47,7 @@ def classify_process(stream_batch):
 
         # loop over the image IDs and their corresponding set of
         # results from our model
-        for (imageID, resultSet) in zip(image_ids, results):
+        for (image_id, resultSet) in zip(image_ids, results):
             # initialize the list of output predictions
             output = {}
             # loop over the results and add them to the list of
@@ -54,7 +55,8 @@ def classify_process(stream_batch):
             # Top 1
             max_index = np.argmax(resultSet)
             output["Top-1"] = str(max_index)
-            output["id"] = imageID
+            output["id"] = image_id
+            print("* Predict result " + str(output))
             # store the output predictions in the database, using
             # the image ID as the key so we can fetch the results
             DB.lpush(settings.PREDICT_QUEUE, json.dumps(output))
@@ -67,11 +69,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', help="Zoo model path")
     args = parser.parse_args()
+    model_path = args.model_path
 
     print("* Loading model...")
     model = InferenceModel()
-    model.load_openvino(model_path=args.model_path,
-                        weight_path=args.model_path[:args.model_path.rindex(".")] + ".bin")
+    model.load_openvino(model_path=model_path,
+                        weight_path=model_path[:model_path.rindex(".")] + ".bin")
     print("* Model loaded")
 
     spark = SparkSession \
@@ -79,19 +82,18 @@ if __name__ == "__main__":
         .appName("Streaming Image Consumer") \
         .config("spark.redis.host", settings.REDIS_HOST) \
         .config("spark.redis.port", settings.REDIS_PORT) \
-        .option("stream.read.batch.size", settings.BATCH_SIZE) \
-        .option("stream.read.block", settings.BLOCK) \
         .getOrCreate()
 
     # Streaming schema
     imageSchema = StructType().add("id", "string").add("path", "string").add("image", "string")
-    loadedDf = spark.readStream.format("redis")\
-        .option("stream.keys", settings.IMAGE_STREAMING)\
+    loadedDf = spark.readStream.format("redis") \
+        .option("stream.keys", settings.IMAGE_STREAMING) \
+        .option("stream.read.batch.size", settings.BATCH_SIZE) \
+        .option("stream.read.block", settings.BLOCK) \
         .schema(imageSchema).load()
 
-    query = loadedDf.writeStream.outputMode("update")\
-        .foreachBatch(lambda x: x["image"])
-    format("console").start()
+    query = loadedDf.writeStream \
+        .foreachBatch(classify_process).start()
 
     query.awaitTermination()
 
