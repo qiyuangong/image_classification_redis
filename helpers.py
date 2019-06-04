@@ -1,4 +1,3 @@
-# import the necessary packages
 import numpy as np
 import base64
 import sys

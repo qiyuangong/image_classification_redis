@@ -3,7 +3,6 @@ import settings
 import helpers
 import cv2
 import argparse
-import json
 import uuid
 import time
 from os import listdir
@@ -63,8 +62,9 @@ def image_enqueue(image_path):
     # classification ID + image to the queue
     k = str(uuid.uuid4())
     image = helpers.base64_encode_image(image)
-    d = {"id": k, "path": image_path, "image": image}
-    DB.rpush(settings.IMAGE_QUEUE, json.dumps(d))
+    # Streaming schema
+    d = {"id": str(k), "path": image_path, "image": image}
+    DB.xadd(settings.IMAGE_STREAMING, d)
     print("Total %d ms" % int(round((time.time() - start_time) * 1000)))
 
 

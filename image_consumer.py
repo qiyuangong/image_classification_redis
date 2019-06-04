@@ -14,9 +14,7 @@ DB = redis.StrictRedis(host=settings.REDIS_HOST,
 
 
 def classify_process(model_path):
-    # load the pre-trained Keras model (here we are using a model
-    # pre-trained on ImageNet and provided by Keras, but you can
-    # substitute in your own networks just as easily)
+    # load the pre-trained OpenVINO model
     print("* Loading model...")
     model = InferenceModel()
     model.load_openvino(model_path,
@@ -29,7 +27,7 @@ def classify_process(model_path):
         # initialize the image IDs and batch of images themselves
         queue = DB.lrange(settings.IMAGE_QUEUE, 0,
                           settings.BATCH_SIZE - 1)
-        imageIDs = []
+        image_ids = []
         batch = None
 
         # loop over the queue
@@ -49,10 +47,10 @@ def classify_process(model_path):
                 batch = np.vstack([batch, image])
 
             # update the list of image IDs
-            imageIDs.append(q["id"])
+            image_ids.append(q["id"])
         print("* Pop from redis %d ms" % int(round((time.time() - start_time) * 1000)))
         # check to see if we need to process the batch
-        if len(imageIDs) > 0:
+        if len(image_ids) > 0:
             # classify the batch
             batch = np.expand_dims(batch, axis=0)
             print("* Batch size: {}".format(batch.shape))
@@ -61,7 +59,7 @@ def classify_process(model_path):
             print("* Predict a batch %d ms" % int(round((time.time() - start_time) * 1000)))
             # loop over the image IDs and their corresponding set of
             # results from our model
-            for (imageID, resultSet) in zip(imageIDs, results):
+            for (imageID, resultSet) in zip(image_ids, results):
                 # initialize the list of output predictions
                 output = {}
                 # loop over the results and add them to the list of
@@ -76,7 +74,7 @@ def classify_process(model_path):
 
             # remove the set of images from our queue
             print("* Total time used is %d ms" % int(round((time.time() - start_time) * 1000)))
-            DB.ltrim(settings.IMAGE_QUEUE, len(imageIDs), -1)
+            DB.ltrim(settings.IMAGE_QUEUE, len(image_ids), -1)
 
         # sleep for a small amount
         time.sleep(settings.SERVER_SLEEP)
