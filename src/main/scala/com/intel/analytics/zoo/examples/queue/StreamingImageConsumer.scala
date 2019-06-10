@@ -16,8 +16,6 @@
 
 package com.intel.analytics.zoo.examples.queue
 
-import com.intel.analytics.bigdl.numeric.NumericFloat
-import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.Engine
 import com.intel.analytics.zoo.pipeline.inference.InferenceModel
 import org.apache.log4j.Logger
@@ -95,10 +93,10 @@ object StreamingImageConsumer {
       val query = images
         .writeStream
         .foreachBatch { (batchDF: DataFrame, batchId: Long) =>
-          val batchImage = batchDF.select("image").collect.map { image =>
-            val bytes = java.util.Base64.getDecoder.decode(image.asInstanceOf[String])
-            Tensor.apply(bytes.map(x => x.toInt))
-          }
+          //val batchImage = batchDF.select("image").collect.map { image =>
+          //  val bytes = java.util.Base64.getDecoder.decode(image.asInstanceOf[String])
+          //  Tensor.apply(bytes.map(x => x.toInt))
+          //}
 
           val start = System.nanoTime()
           if (param.isInt8) {

@@ -36,9 +36,7 @@ def classify_process(model_path):
             # deserialize the object and obtain the input image
             q = json.loads(q.decode("utf-8"))
             image = helpers.base64_decode_image(q["image"],
-                                                settings.IMAGE_DTYPE,
-                                                (1, settings.IMAGE_HEIGHT, settings.IMAGE_WIDTH,
-                                                 settings.IMAGE_CHANS))
+                                                settings.IMAGE_DTYPE)
             # check to see if the batch list is None
             if batch is None:
                 batch = image
