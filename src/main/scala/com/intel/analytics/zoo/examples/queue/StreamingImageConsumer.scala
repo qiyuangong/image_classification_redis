@@ -16,26 +16,36 @@
 
 package com.intel.analytics.zoo.examples.queue
 
+import com.intel.analytics.bigdl.dataset.SampleToMiniBatch
+import com.intel.analytics.bigdl.nn.abstractnn.Activity
 import com.intel.analytics.bigdl.utils.Engine
+import com.intel.analytics.bigdl.numeric.NumericFloat
+import com.intel.analytics.zoo.common.NNContext
+import com.intel.analytics.zoo.feature.image.{ImageCenterCrop, ImageMatToTensor, ImageResize, ImageSet, ImageSetToSample}
 import com.intel.analytics.zoo.pipeline.inference.InferenceModel
-import org.apache.log4j.Logger
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import scopt.OptionParser
 
 
-case class ResNet50PerfParams(model: String = "",
-                              weight: String = "",
-                              batchSize: Int = 4,
-                              isInt8: Boolean = false)
+case class RedisParams(model: String = "",
+                       weight: String = "",
+                       batchSize: Int = 4,
+                       isInt8: Boolean = false)
 
 object StreamingImageConsumer {
+
+  Logger.getLogger("org").setLevel(Level.ERROR)
+  Logger.getLogger("akka").setLevel(Level.ERROR)
+  Logger.getLogger("breeze").setLevel(Level.ERROR)
+  Logger.getLogger("com.intel.analytics.zoo.feature.image").setLevel(Level.ERROR)
+  Logger.getLogger("com.intel.analytics.zoo").setLevel(Level.INFO)
 
   val logger: Logger = Logger.getLogger(getClass)
 
   def main(args: Array[String]): Unit = {
-
-    val parser = new OptionParser[ResNet50PerfParams]("ResNet50 Int8 Performance Test") {
+    val parser = new OptionParser[RedisParams]("Redis Streaming Test") {
       opt[String]('m', "model")
         .text("The path to the int8 quantized ResNet50 model snapshot")
         .action((v, p) => p.copy(model = v))
@@ -48,16 +58,14 @@ object StreamingImageConsumer {
         .action((v, p) => p.copy(batchSize = v))
       opt[Boolean]("isInt8")
         .text("Is Int8 optimized model?")
-        .action((x, c) => c.copy(isInt8 = x))
+        .action((v, p) => p.copy(isInt8 = v))
     }
 
-    parser.parse(args, ResNet50PerfParams()).foreach { param =>
+    parser.parse(args, RedisParams()).map { param =>
+      val sc = NNContext.initNNContext("Redis Streaming Test")
 
       val batchSize = param.batchSize
       val model = new InferenceModel(1)
-
-      // Init Zoo NNContext
-      Engine.init
 
       if (param.isInt8) {
         model.doLoadOpenVINOInt8(param.model, param.weight, param.batchSize)
@@ -85,24 +93,32 @@ object StreamingImageConsumer {
       )))
         .load()
 
-      val shape = Array(2254, 224, 3)
-
       val predictStart = System.nanoTime()
       var averageLatency = 0L
-
       val query = images
         .writeStream
         .foreachBatch { (batchDF: DataFrame, batchId: Long) =>
-          //val batchImage = batchDF.select("image").collect.map { image =>
-          //  val bytes = java.util.Base64.getDecoder.decode(image.asInstanceOf[String])
-          //  Tensor.apply(bytes.map(x => x.toInt))
-          //}
-
+          val batchImage = batchDF.select("image").collect.map { image =>
+            java.util.Base64.getDecoder.decode(image.get(0).asInstanceOf[String])
+          }
+          val images = ImageSet.array(batchImage)
+          val inputs = images ->
+            ImageResize(256, 256) ->
+            ImageCenterCrop(224, 224) ->
+            ImageMatToTensor(shareBuffer = false) ->
+            ImageSetToSample()
+          val batched = inputs.toDataSet() -> SampleToMiniBatch(param.batchSize)
           val start = System.nanoTime()
-          if (param.isInt8) {
-            model.doPredictInt8(batchImage)
-          } else {
-            model.doPredict(batchImage)
+          val predicts = batched.toLocal()
+            .data(false).flatMap {miniBatch =>
+            val predict = if (param.isInt8) {
+              model.doPredictInt8(miniBatch
+                .getInput.toTensor.addSingletonDimension())
+            } else {
+              model.doPredict(miniBatch
+                .getInput.toTensor.addSingletonDimension())
+            }
+            predict.toTensor.squeeze.split(1).asInstanceOf[Array[Activity]]
           }
           val latency = System.nanoTime() - start
           averageLatency += latency
