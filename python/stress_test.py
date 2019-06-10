@@ -3,13 +3,11 @@
 
 # import the necessary packages
 from threading import Thread
-import requests
 import time
+from image_producer import *
 
 # initialize the Keras REST API endpoint URL along with the input
 # image path
-KERAS_REST_API_URL = "http://localhost/predict"
-IMAGE_PATH = "jemma.png"
 
 # initialize the number of requests for the stress test along with
 # the sleep amount between requests
@@ -17,31 +15,47 @@ NUM_REQUESTS = 500
 SLEEP_COUNT = 0.05
 
 
-def call_predict_endpoint(n):
-    # load the input image and construct the payload for the request
-    image = open(IMAGE_PATH, "rb").read()
-    payload = {"image": image}
+def prepare_images(img_path):
+    image_dicts = []
+    for f in listdir(img_path):
+        if isfile(join(img_path, f)):
+            image_path = join(img_path, f)
+            image = preprocess(image_path, settings.IMAGE_WIDTH,
+                               settings.IMAGE_HEIGHT)
+            # NHWC -> NCWH
+            image = image.transpose(2, 0, 1)
+            # ensure our NumPy array is C-contiguous as well,
+            # otherwise we won't be able to serialize it
+            image = image.copy(order="C")
 
-    # submit the request
-    r = requests.post(KERAS_REST_API_URL, files=payload).json()
-
-    # ensure the request was sucessful
-    if r["success"]:
-        print("[INFO] thread {} OK".format(n))
-
-    # otherwise, the request failed
-    else:
-        print("[INFO] thread {} FAILED".format(n))
+            # generate an ID for the classification then add the
+            # classification ID + image to the queue
+            k = str(uuid.uuid4())
+            image = helpers.base64_encode_image(image)
+            image_dicts.append({"id": k, "path": image_path, "image": image})
+    return image_dicts
 
 
-# loop over the number of threads
-for i in range(0, NUM_REQUESTS):
-    # start a new thread to call the API
-    t = Thread(target=call_predict_endpoint, args=(i,))
-    t.daemon = True
-    t.start()
-    time.sleep(SLEEP_COUNT)
+def push_to_redis(image_dicts):
+    for image in image_dicts:
+        DB.rpush(settings.IMAGE_QUEUE, json.dumps(image))
 
-# insert a long sleep so we can wait until the server is finished
-# processing the images
-time.sleep(300)
+
+def stress_test(image_dicts):
+    for i in range(0, NUM_REQUESTS):
+        # start a new thread to call the API
+        t = Thread(target=push_to_redis, args=(image_dicts,))
+        t.daemon = True
+        t.start()
+        time.sleep(SLEEP_COUNT)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--img_path', help="Path where the images are stored")
+    args = parser.parse_args()
+
+    images = prepare_images(args.img_path)
+    stress_test(images)
+
+    time.sleep(300)
