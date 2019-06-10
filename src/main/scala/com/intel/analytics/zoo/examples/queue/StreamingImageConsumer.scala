@@ -18,21 +18,24 @@ package com.intel.analytics.zoo.examples.queue
 
 import com.intel.analytics.bigdl.dataset.SampleToMiniBatch
 import com.intel.analytics.bigdl.nn.abstractnn.Activity
-import com.intel.analytics.bigdl.utils.Engine
 import com.intel.analytics.bigdl.numeric.NumericFloat
+import com.intel.analytics.bigdl.transform.vision.image.ImageFeature
 import com.intel.analytics.zoo.common.NNContext
-import com.intel.analytics.zoo.feature.image.{ImageCenterCrop, ImageMatToTensor, ImageResize, ImageSet, ImageSetToSample}
+import com.intel.analytics.zoo.feature.image.{ImageBytesToMat, ImageCenterCrop, ImageMatToTensor, ImageResize, ImageSet, ImageSetToSample}
+import com.intel.analytics.zoo.models.image.imageclassification.{LabelOutput, LabelReader}
 import com.intel.analytics.zoo.pipeline.inference.InferenceModel
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.opencv.imgcodecs.Imgcodecs
 import scopt.OptionParser
 
 
 case class RedisParams(model: String = "",
                        weight: String = "",
                        batchSize: Int = 4,
-                       isInt8: Boolean = false)
+                       isInt8: Boolean = false,
+                       topN: Int = 5)
 
 object StreamingImageConsumer {
 
@@ -56,12 +59,15 @@ object StreamingImageConsumer {
       opt[Int]('b', "batchSize")
         .text("Batch size of input data")
         .action((v, p) => p.copy(batchSize = v))
+      opt[Int]("topN")
+        .text("top N number")
+        .action((v, p) => p.copy(topN = v))
       opt[Boolean]("isInt8")
         .text("Is Int8 optimized model?")
         .action((v, p) => p.copy(isInt8 = v))
     }
 
-    parser.parse(args, RedisParams()).map { param =>
+    parser.parse(args, RedisParams()).foreach { param =>
       val sc = NNContext.initNNContext("Redis Streaming Test")
 
       val batchSize = param.batchSize
@@ -93,16 +99,19 @@ object StreamingImageConsumer {
       )))
         .load()
 
-      val predictStart = System.nanoTime()
-      var averageLatency = 0L
       val query = images
         .writeStream
         .foreachBatch { (batchDF: DataFrame, batchId: Long) =>
-          val batchImage = batchDF.select("image").collect.map { image =>
-            java.util.Base64.getDecoder.decode(image.get(0).asInstanceOf[String])
+          val batchImage = batchDF.collect().map { image =>
+            val bytes = java.util
+              .Base64.getDecoder.decode(image.getAs[String]("image"))
+            val path = image.getAs[String]("path")
+            logger.info(s"image: ${path}")
+            ImageFeature.apply(bytes, null, path)
           }
-          val images = ImageSet.array(batchImage)
-          val inputs = images ->
+          val imageSet = ImageSet.array(batchImage)
+          val inputs = imageSet ->
+            ImageBytesToMat(imageCodec = Imgcodecs.CV_LOAD_IMAGE_COLOR) ->
             ImageResize(256, 256) ->
             ImageCenterCrop(224, 224) ->
             ImageMatToTensor(shareBuffer = false) ->
@@ -110,7 +119,7 @@ object StreamingImageConsumer {
           val batched = inputs.toDataSet() -> SampleToMiniBatch(param.batchSize)
           val start = System.nanoTime()
           val predicts = batched.toLocal()
-            .data(false).flatMap {miniBatch =>
+            .data(false).flatMap { miniBatch =>
             val predict = if (param.isInt8) {
               model.doPredictInt8(miniBatch
                 .getInput.toTensor.addSingletonDimension())
@@ -120,8 +129,25 @@ object StreamingImageConsumer {
             }
             predict.toTensor.squeeze.split(1).asInstanceOf[Array[Activity]]
           }
+          // Add prediction into imageset
+          imageSet.array.zip(predicts.toIterable).foreach(tuple => {
+            tuple._1(ImageFeature.predict) = tuple._2
+          })
+          // Transform prediction into Labels and probs
+          val labelOutput = LabelOutput(LabelReader.apply("IMAGENET"))
+          val results = labelOutput(imageSet).toLocal().array
+
+          // Output results
+          results.foreach(imageFeature => {
+            logger.info(s"image: ${imageFeature.uri}, top ${param.topN}")
+            val classes = imageFeature("classes").asInstanceOf[Array[String]]
+            val probs = imageFeature("probs").asInstanceOf[Array[Float]]
+            for (i <- 0 until param.topN) {
+              logger.info(s"\t class: ${classes(i)}, credit: ${probs(i)}")
+            }
+          })
+
           val latency = System.nanoTime() - start
-          averageLatency += latency
           logger.info(s"Predict latency is ${latency / 1e6} ms")
         }.start()
 
