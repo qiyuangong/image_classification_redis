@@ -50,11 +50,11 @@ object StreamingImageConsumer {
   def main(args: Array[String]): Unit = {
     val parser = new OptionParser[RedisParams]("Redis Streaming Test") {
       opt[String]('m', "model")
-        .text("The path to the int8 quantized ResNet50 model snapshot")
+        .text("The path to OpenVINO model")
         .action((v, p) => p.copy(model = v))
         .required()
       opt[String]('w', "weight")
-        .text("The path to the int8 ResNet50 model weight")
+        .text("The path to OpenVINO model weight")
         .action((v, p) => p.copy(weight = v))
       opt[Int]('b', "batchSize")
         .text("Batch size of input data")
@@ -91,7 +91,7 @@ object StreamingImageConsumer {
         .readStream
         .format("redis")
         .option("stream.keys", "image_stream")
-        .option("stream.read.batch.size", batchSize.toString)
+        .option("stream.read.batch.size", batchSize)
         .schema(StructType(Array(
         StructField("id", StringType),
         StructField("path", StringType),
