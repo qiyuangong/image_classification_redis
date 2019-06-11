@@ -60,6 +60,7 @@ def image_preprocess(image, output_width, output_height):
     print("Pre-processing %d ms" % int(round((time.time() - start_time) * 1000)))
     # NHWC -> NCWH
     image = image.transpose(2, 0, 1)
+    image = np.expand_dims(image, axis=0)
     # ensure our NumPy array is C-contiguous as well,
     # otherwise we won't be able to serialize it
     image = image.copy(order="C")
