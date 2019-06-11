@@ -1,13 +1,5 @@
-# USAGE
-# python stress_test.py
-
-# import the necessary packages
 from threading import Thread
-import time
 from image_producer import *
-
-# initialize the Keras REST API endpoint URL along with the input
-# image path
 
 # initialize the number of requests for the stress test along with
 # the sleep amount between requests
@@ -20,19 +12,12 @@ def prepare_images(img_path):
     for f in listdir(img_path):
         if isfile(join(img_path, f)):
             image_path = join(img_path, f)
-            image = preprocess(image_path, settings.IMAGE_WIDTH,
-                               settings.IMAGE_HEIGHT)
-            # NHWC -> NCWH
-            image = image.transpose(2, 0, 1)
-            # ensure our NumPy array is C-contiguous as well,
-            # otherwise we won't be able to serialize it
-            image = image.copy(order="C")
-
-            # generate an ID for the classification then add the
-            # classification ID + image to the queue
-            k = str(uuid.uuid4())
-            image = helpers.base64_encode_image(image)
-            image_dicts.append({"id": k, "path": image_path, "image": image})
+            with open(image_path, "rb") as imageFile:
+                # generate an ID for the classification then add the
+                # classification ID + image to the queue
+                k = str(uuid.uuid4())
+                image = helpers.base64_encode_image(imageFile.read())
+                image_dicts.append({"id": k, "path": image_path, "image": image})
     return image_dicts
 
 
@@ -58,4 +43,4 @@ if __name__ == "__main__":
     images = prepare_images(args.img_path)
     stress_test(images)
 
-    time.sleep(300)
+    time.sleep(3)
