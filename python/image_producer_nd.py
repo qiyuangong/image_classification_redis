@@ -15,9 +15,11 @@ DB = redis.StrictRedis(host=settings.REDIS_HOST,
 
 
 def image_enqueue(image_path):
+    # Imaging you already have a image MAT
     start_time = time.time()
     # ND array
     image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    # Use Png rather than Jpeg, jpeg is lossy compression
     image = cv2.imencode(".png", image)[1]
     # generate an ID for the classification then add the
     # classification ID + image to the queue
