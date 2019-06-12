@@ -10,6 +10,25 @@ An Image Classification example based on [Redis](https://redis.io/) and [Analyti
 5. Scala 2.11.8
 6. Python 3 and `pip install redis`
 
+# Basic Example
+
+**Basic Roles:**
+
+1. Message Queue: Redis.
+2. Image Producer (image_producer.py): Push images into Redis
+3. Image Consumer (StreamingImageConsumer.scala): Pop images from Redis, make prediction. Then, if necessary push results into Redis.
+
+```bash
+java -cp ${ANALYTICS_ZOO_JAR}:${SPARK_HOME}/jars/* \
+    com.intel.analytics.zoo.examples.queue.ImageConsumer
+    --model ${openvino model path, *.xml} --weight ${openvino model path, *.bin}
+```
+
+Open another terminal
+```bash
+python image_producer.py --img_path=${image dir} 
+```
+
 # Streaming Example
 
 **Additional Requirements:**
@@ -29,7 +48,6 @@ mvn clean package --DskipTests
 ```
 
 ```bash
-
 ${SPARK_HOME}/bin/spark-submit \
     --master "local[*]" \
     --driver-memory 5g \
