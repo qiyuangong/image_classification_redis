@@ -19,8 +19,12 @@ def image_enqueue(image_path):
     start_time = time.time()
     # ND array
     image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-    # Use Png rather than Jpeg, jpeg is lossy compression
+    # Use Png. It is lossless.
     image = cv2.imencode(".png", image)[1]
+    # PNG compression, 10% reduction in size
+    # image = cv2.imencode(".png", image, [cv2.IMWRITE_PNG_COMPRESSION, 9])[1]
+    # If change to JPEG, the size will be 75% smaller, but ND will be different
+    # image = cv2.imencode(".jpeg", image)[1]
     # generate an ID for the classification then add the
     # classification ID + image to the queue
     k = str(uuid.uuid4())
