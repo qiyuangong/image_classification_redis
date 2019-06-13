@@ -83,6 +83,7 @@ object StreamingImageConsumer {
       val spark = SparkSession
         .builder
         .master("local[*]")
+        .config(sc.getConf)
         .config("spark.redis.host", "localhost")
         .config("spark.redis.port", "6379")
         .getOrCreate()
@@ -106,7 +107,7 @@ object StreamingImageConsumer {
             val bytes = java.util
               .Base64.getDecoder.decode(image.getAs[String]("image"))
             val path = image.getAs[String]("path")
-            logger.info(s"image: ${path}")
+            logger.info(s"image: $path")
             ImageFeature.apply(bytes, null, path)
           }
           val imageSet = ImageSet.array(batchImage)
@@ -150,7 +151,6 @@ object StreamingImageConsumer {
           val latency = System.nanoTime() - start
           logger.info(s"Predict latency is ${latency / 1e6} ms")
         }.start()
-
       query.awaitTermination()
     }
   }

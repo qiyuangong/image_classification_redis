@@ -78,6 +78,7 @@ object ImageConsumer {
       }
 
       while (true) {
+        // Get batch from queue
         val batch = redisDB.lrange("image_queue", 0 , batchSize - 1)
         val batchImage = List.range(0, batch.size()).toArray.map { i =>
           val json = JSON.parseFull(batch.get(i))
@@ -128,6 +129,7 @@ object ImageConsumer {
             logger.info(s"\t class: ${classes(i)}, credit: ${probs(i)}")
           }
         })
+        // Equal to Lpop, remove from queue
         redisDB.ltrim("image_queue", batch.size(), -1)
       }
     }
