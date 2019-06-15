@@ -53,6 +53,20 @@ def central_crop(image, crop_height, crop_width):
     return image[crop_top:crop_top + crop_height, crop_left:crop_left + crop_width]
 
 
+def normalization(image, means):
+    """
+    Normalization with given means
+    :param image: OpenCV Mat
+    :param means: [R, G, B] ,e.g, [103.939, 116.779, 123.68]
+    :return: OpenCV Mat
+    """
+    image = image.astype(np.float)
+    image[:, :, 0] -= means[0]
+    image[:, :, 1] -= means[1]
+    image[:, :, 2] -= means[2]
+    return image
+
+
 def image_preprocess(image, output_width, output_height):
     start_time = time.time()
     image = aspect_preserving_resize(image, settings.RESIZE_MIN)

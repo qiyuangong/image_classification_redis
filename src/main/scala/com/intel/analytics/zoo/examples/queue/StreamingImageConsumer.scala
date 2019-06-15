@@ -35,7 +35,8 @@ case class RedisParams(model: String = "",
                        weight: String = "",
                        batchSize: Int = 4,
                        isInt8: Boolean = false,
-                       topN: Int = 5)
+                       topN: Int = 5,
+                       redis: String = "localhost:6379")
 
 object StreamingImageConsumer {
 
@@ -65,10 +66,17 @@ object StreamingImageConsumer {
       opt[Boolean]("isInt8")
         .text("Is Int8 optimized model?")
         .action((v, p) => p.copy(isInt8 = v))
+      opt[String]("redis")
+        .text("redis address and port")
+        .action((v, p) => p.copy(redis = v))
     }
 
     parser.parse(args, RedisParams()).foreach { param =>
-      val sc = NNContext.initNNContext("Redis Streaming Test")
+      val conf = NNContext.createSparkConf()
+        .set("spark.redis.host", param.redis.split(":").head)
+        .set("spark.redis.port", param.redis.split(":").last)
+      val sc = NNContext.initNNContext(conf,
+        "Redis Spark Streaming Test")
 
       val batchSize = param.batchSize
       val model = new InferenceModel(1)
@@ -84,8 +92,6 @@ object StreamingImageConsumer {
         .builder
         .master("local[*]")
         .config(sc.getConf)
-        .config("spark.redis.host", "localhost")
-        .config("spark.redis.port", "6379")
         .getOrCreate()
 
       val images = spark
