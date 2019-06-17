@@ -23,8 +23,9 @@ def classify_process(stream_batch, batch_id):
     # loop over the queue
     for q in stream_batch:
         # deserialize the object and obtain the input image
-        image = helpers.base64_decode_image(q['image'],
-                                            settings.IMAGE_DTYPE)
+        image = helpers.base64_decode_image(q["image"])
+        image = helpers.byte_to_mat(image, dtype=settings.IMAGE_DTYPE)
+        image = helpers.image_preprocess(image, settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
         # check to see if the batch list is None
         if batch is None:
             batch = image

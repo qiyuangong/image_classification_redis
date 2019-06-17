@@ -11,7 +11,7 @@ def base64_encode_image(image_array):
     return base64.b64encode(image_array).decode("utf-8")
 
 
-def base64_decode_image(image_array, dtype):
+def base64_decode_image(image_array):
     # if this is Python 3, we need the extra step of encoding the
     # serialized NumPy string as a byte object
     if sys.version_info.major == 3:
@@ -19,10 +19,7 @@ def base64_decode_image(image_array, dtype):
 
     # convert the string to a NumPy array using the supplied data
     # type and target shape
-    image_array = byte_to_mat(base64.decodebytes(image_array), dtype=dtype)
-    image_array = image_preprocess(image_array, settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
-    # return the decoded image
-    return image_array
+    return base64.decodebytes(image_array)
 
 
 def smallest_size_at_least(height, width, resize_min):
@@ -67,8 +64,19 @@ def normalization(image, means):
 
 
 def byte_to_mat(image_bytes, dtype):
-    image_array = np.frombuffer(image_bytes, dtype=dtype)
+    if isinstance(image_bytes, str):
+        image_array = np.fromstring(image_bytes, dtype=dtype)
+    else:
+        image_array = np.frombuffer(image_bytes, dtype=dtype)
+    # cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
     return cv2.imdecode(image_array, -1)
+
+
+def NHWC2HCHW(image):
+    # NHWC -> NCWH
+    image = image.transpose(2, 0, 1)
+    image = np.expand_dims(image, axis=0)
+    return image
 
 
 def image_preprocess(image, output_width, output_height):
@@ -77,9 +85,7 @@ def image_preprocess(image, output_width, output_height):
     image = central_crop(image, output_height, output_width)
     # image = normalization(image, [103.939, 116.779, 123.68])
     print("Pre-processing %d ms" % int(round((time.time() - start_time) * 1000)))
-    # NHWC -> NCWH
-    image = image.transpose(2, 0, 1)
-    image = np.expand_dims(image, axis=0)
+    image = NHWC2HCHW(image)
     # ensure our NumPy array is C-contiguous as well,
     # otherwise we won't be able to serialize it
     image = image.copy(order="C")
