@@ -19,8 +19,7 @@ def base64_decode_image(image_array, dtype):
 
     # convert the string to a NumPy array using the supplied data
     # type and target shape
-    image_array = np.frombuffer(base64.decodestring(image_array), dtype=dtype)
-    image_array = cv2.imdecode(image_array, -1)
+    image_array = byte_to_mat(base64.decodebytes(image_array), dtype=dtype)
     image_array = image_preprocess(image_array, settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
     # return the decoded image
     return image_array
@@ -67,10 +66,16 @@ def normalization(image, means):
     return image
 
 
+def byte_to_mat(image_bytes, dtype):
+    image_array = np.frombuffer(image_bytes, dtype=dtype)
+    return cv2.imdecode(image_array, -1)
+
+
 def image_preprocess(image, output_width, output_height):
     start_time = time.time()
     image = aspect_preserving_resize(image, settings.RESIZE_MIN)
     image = central_crop(image, output_height, output_width)
+    # image = normalization(image, [103.939, 116.779, 123.68])
     print("Pre-processing %d ms" % int(round((time.time() - start_time) * 1000)))
     # NHWC -> NCWH
     image = image.transpose(2, 0, 1)
