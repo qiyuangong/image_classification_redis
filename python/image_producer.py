@@ -22,7 +22,7 @@ def image_enqueue(image_path):
         image = helpers.base64_encode_image(imageFile.read())
         d = {"id": k, "path": image_path, "image": image}
         DB.rpush(settings.IMAGE_QUEUE, json.dumps(d))
-        print("Push to redis %d ms" % int(round((time.time() - start_time) * 1000)))
+        print("* Push to redis %d ms" % int(round((time.time() - start_time) * 1000)))
 
 
 def images_enqueue(dir_path):

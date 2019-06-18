@@ -5,7 +5,7 @@ An Image Classification example based on [Redis](https://redis.io/) and [Analyti
 
 1. [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo)
 2. [Redis](https://redis.io/). You can obtain Redis from Docker, such that you don't have to install it in your test env, e.g, `docker run --name test-redis -p 6379:6379 -d redis`
-3. Pre-trained ResNet-50 model in OpenVINO format. You can get it from [Zoo OpenVINO example](https://github.com/intel-analytics/analytics-zoo/tree/master/zoo/src/main/scala/com/intel/analytics/zoo/examples/vnni/openvino) or [converting a TensorFlow Model with OpenVINO](https://docs.openvinotoolkit.org/latest/_docs_MO_DG_prepare_model_convert_model_Convert_Model_From_TensorFlow.html). Note that Zoo and Tensorflow models are also supported. You can load these models with Zoo after a few modifcations.
+3. Pre-trained ResNet-50 model in OpenVINO format. You can get it from [Zoo OpenVINO example](https://github.com/intel-analytics/analytics-zoo/tree/master/zoo/src/main/scala/com/intel/analytics/zoo/examples/vnni/openvino) or [converting a TensorFlow Model with OpenVINO](https://docs.openvinotoolkit.org/latest/_docs_MO_DG_prepare_model_convert_model_Convert_Model_From_TensorFlow.html). Note that Zoo and Tensorflow models are also supported. You can load these models with Zoo after a few modifications.
 4. Several test images in JPEG format.
 5. Python 3 and `pip install redis bigdl analytics-zoo pyspark`
 
@@ -51,3 +51,7 @@ Open another terminal
 ```bash
 python streaming_image_producer.py --img_path=${image dir} 
 ```
+
+# Configuration
+Default configurations, i.e., queue name, batch size and image shape etc, are located in `settings.py`.
+

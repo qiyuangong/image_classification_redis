@@ -8,7 +8,7 @@ def push_to_redis_stream(image_dicts):
     for image in image_dicts:
         start_time = time.time()
         DB.xadd(settings.IMAGE_STREAMING, image)
-        print("Push to Redis %d ms" % int(round((time.time() - start_time) * 1000)))
+        print("* Push to Redis %d ms" % int(round((time.time() - start_time) * 1000)))
 
 
 def stress_stream_test(image_dicts):

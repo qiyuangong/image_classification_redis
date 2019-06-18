@@ -43,6 +43,7 @@ object ImageConsumer {
   val logger: Logger = Logger.getLogger(getClass)
 
   def main(args: Array[String]): Unit = {
+    // Enable MKLDNN local mode
     System.setProperty("bigdl.localMode", "true")
     System.setProperty("bigdl.engineType", "mkldnn")
 
@@ -60,12 +61,17 @@ object ImageConsumer {
       opt[Boolean]("isInt8")
         .text("Is Int8 optimized model?")
         .action((x, c) => c.copy(isInt8 = x))
+      opt[String]("redis")
+        .text("redis address and port")
+        .action((v, p) => p.copy(redis = v))
     }
 
     parser.parse(args, RedisParams()).foreach { param =>
       val batchSize = param.batchSize
 
-      val redisDB = new Jedis("localhost")
+      // Redis Connection
+      // Default is localhost
+      val redisDB = new Jedis(param.redis)
 
       Engine.init
 

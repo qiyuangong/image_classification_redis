@@ -95,4 +95,3 @@ if __name__ == "__main__":
         .foreachBatch(classify_process).start()
 
     query.awaitTermination()
-

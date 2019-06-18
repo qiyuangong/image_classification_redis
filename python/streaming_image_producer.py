@@ -19,15 +19,15 @@ def image_enqueue(image_path):
         # classification ID + image to the queue
         image = helpers.base64_encode_image(imageFile.read())
         read_time = time.time()
-        print("Read and base64 %d ms" % int(round(read_time - start_time) * 1000))
+        print("* Read and base64 %d ms" % int(round(read_time - start_time) * 1000))
         # generate an ID for the classification then add the
         # classification ID + image to the queue
         k = str(uuid.uuid4())
         # Streaming schema
         d = {"id": str(k), "path": image_path, "image": image}
         DB.xadd(settings.IMAGE_STREAMING, d)
-        print("Push to Redis %d ms" % int(round((time.time() - read_time) * 1000)))
-    print("Total %d ms" % int(round((time.time() - start_time) * 1000)))
+        print("* Push to Redis %d ms" % int(round((time.time() - read_time) * 1000)))
+    print("* Total %d ms" % int(round((time.time() - start_time) * 1000)))
 
 
 def images_enqueue(dir_path):
