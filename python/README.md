@@ -23,7 +23,7 @@ python image_consumer.py --model_path=${openvino model path, *.xml}
 
 Open another terminal
 ```bash
-python image_producer.py --img_path=${image dir} 
+python image_producer.py --img_path=${image dir}
 ```
 
 # Streaming Example
@@ -42,14 +42,44 @@ python image_producer.py --img_path=${image dir}
 
 ```bash
 ${SPARK_HOME}/bin/spark-submit --master "local[*]" \
-    --driver-memory 5g \ 
+    --driver-memory 5g \
     --jars ${analytics-zoo jar},${spark-redis.jar},target/zoo-image-classification-redis-0.1.0-SNAPSHOT.jar} \
     streaming_image_consumer.py --model_path=${openvino model path, *.xml}
 ```
 
 Open another terminal
 ```bash
-python streaming_image_producer.py --img_path=${image dir} 
+python streaming_image_producer.py --img_path=${image dir}
+```
+
+# Stress Test
+Launch multiple threads, and push images into Redis in parallel. Tune parameters in `stress_test.py` and `streaming_stress_test.py`, such that you can evaluate latency and throughput of your application.
+
+**Basic Stress Test:**
+
+Launch Image Consumer.
+```bash
+python image_consumer.py --model_path=${openvino model path, *.xml}
+```
+
+Open another terminal and launch Stress Test.
+```bash
+python stress_test.py --img_path=${image dir}
+```
+
+**Streaming Stress Test:**
+
+Launch Image Consumer.
+```bash
+${SPARK_HOME}/bin/spark-submit --master "local[*]" \
+    --driver-memory 5g \
+    --jars ${analytics-zoo jar},${spark-redis.jar},target/zoo-image-classification-redis-0.1.0-SNAPSHOT.jar} \
+    streaming_image_consumer.py --model_path=${openvino model path, *.xml}
+```
+
+Open another terminal and launch Streaming Stress Test.
+```bash
+python streaming_stress_test.py --img_path=${image dir}
 ```
 
 # Configuration
