@@ -21,7 +21,7 @@ def classify_process(model_path):
                         weight_path=model_path[:model_path.rindex(".")] + ".bin")
     print("* Model loaded")
 
-    # continually pool for new images to classify
+    # continually poll for new images to classify
     while True:
         # attempt to grab a batch of images from the database, then
         # initialize the image IDs and batch of images themselves
@@ -32,10 +32,10 @@ def classify_process(model_path):
 
         # loop over the queue
         start_time = time.time()
-        for q in queue:
+        for record in queue:
             # deserialize the object and obtain the input image
-            q = json.loads(q.decode("utf-8"))
-            image = helpers.base64_decode_image(q["image"])
+            record = json.loads(record.decode("utf-8"))
+            image = helpers.base64_decode_image(record["image"])
             image = helpers.byte_to_mat(image, dtype=settings.IMAGE_DTYPE)
             image = helpers.image_preprocess(image, settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
             # check to see if the batch list is None
@@ -46,7 +46,7 @@ def classify_process(model_path):
                 batch = np.vstack([batch, image])
 
             # update the list of image IDs
-            image_ids.append(q["id"])
+            image_ids.append(record["id"])
         print("* Pop from redis %d ms" % int(round((time.time() - start_time) * 1000)))
         # check to see if we need to process the batch
         if len(image_ids) > 0:

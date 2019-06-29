@@ -2,6 +2,7 @@ import redis
 import settings
 import helpers
 import argparse
+import json
 import uuid
 import time
 from os import listdir
@@ -23,8 +24,9 @@ def image_enqueue(image_path):
         image = helpers.base64_encode_image(imageFile.read())
         # generate an ID for the classification then add the
         # classification ID + image to the queue
-
-        QUEUE.publish('channel_1',image)
+        k = str(uuid.uuid4())
+        d = {"id": k, "path": image_path, "image": image}
+        QUEUE.publish('channel', json.dumps(d))
         print("Push to redis %d ms" % int(round((time.time() - start_time) * 1000)))
 
 
