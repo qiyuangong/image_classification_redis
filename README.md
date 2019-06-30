@@ -21,6 +21,14 @@ We prepare 2 examples with Scala and Python implementations.
 2. Image Producer: Push images into Redis
 3. Image Consumer: Pop images from Redis, make prediction. Then, if necessary push results into Redis.
 
+# Pub/Sub Example
+
+**Basic Roles:**
+
+1. Message Queue: Redis.
+2. Image Pub: Publish images topic into Redis
+3. Image Sub: Subscribe topic that contains images from Redis, make prediction. Then, if necessary push results into Redis.
+
 # Streaming Example
 
 **Additional Requirements:**
@@ -36,12 +44,12 @@ We prepare 2 examples with Scala and Python implementations.
 3. Streaming Image Consumer: Pop images from Redis, make prediction. Then, if necessary push results into Redis.
 
 # Reference
-1. [Deep learning in production with Keras, Redis, Flask, and Apache
-](https://www.pyimagesearch.com/2018/02/05/deep-learning-production-keras-redis-flask-apache/)
+1. [Deep learning in production with Keras, Redis, Flask, and Apache](https://www.pyimagesearch.com/2018/02/05/deep-learning-production-keras-redis-flask-apache/)
 2. [Message Queue](https://en.wikipedia.org/wiki/Message_queue)
 3. [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo)
 4. [Redis](https://redis.io/)
-5. [Redis Streams](https://redis.io/topics/streams-intro)
-6. [Spark](https://spark.apache.org/)
-7. [Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
-8. [OpenVINO](https://software.intel.com/en-us/openvino-toolkit)
+5. [Redis Pub/Sub](https://redis.io/topics/pubsub)
+6. [Redis Streams](https://redis.io/topics/streams-intro)
+7. [Spark](https://spark.apache.org/)
+8. [Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
+9. [OpenVINO](https://software.intel.com/en-us/openvino-toolkit)

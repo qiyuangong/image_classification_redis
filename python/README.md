@@ -26,6 +26,23 @@ Open another terminal
 python image_producer.py --img_path=${image dir}
 ```
 
+# Pub/Sub Example
+
+**Basic Roles:**
+
+1. Message Queue: Redis.
+2. Image Pub (image_pub.py): Publish images topic into Redis
+3. Image Sub (image_sub.py): Subscribe topic that contains images from Redis, make prediction. Then, if necessary push results into Redis.
+
+```bash
+python image_sub.py --model_path=${openvino model path, *.xml}
+```
+
+Open another terminal
+```bash
+python image_pub.py --img_path=${image dir}
+```
+
 # Streaming Example
 
 **Additional Requirements:**
@@ -84,4 +101,3 @@ python streaming_stress_test.py --img_path=${image dir}
 
 # Configuration
 Default configurations, i.e., queue name, batch size and image shape etc, are located in `settings.py`.
-
