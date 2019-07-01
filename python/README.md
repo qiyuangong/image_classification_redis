@@ -31,8 +31,8 @@ python image_producer.py --img_path=${image dir}
 **Basic Roles:**
 
 1. Message Queue: Redis.
-2. Image Pub (image_pub.py): Publish images topic into Redis
-3. Image Sub (image_sub.py): Subscribe topic that contains images from Redis, make prediction. Then, if necessary push results into Redis.
+2. Image Pub (pubsub_image_pub.py): Publish images topic into Redis
+3. Image Sub (pubsub_image_sub.py): Subscribe topic that contains images from Redis, make prediction. Then, if necessary push results into Redis.
 
 ```bash
 python image_sub.py --model_path=${openvino model path, *.xml}
@@ -70,7 +70,7 @@ python streaming_image_producer.py --img_path=${image dir}
 ```
 
 # Stress Test
-Launch multiple threads, and push images into Redis in parallel. Tune parameters in `stress_test.py` and `streaming_stress_test.py`, such that you can evaluate latency and throughput of your application.
+Launch multiple threads, and push images into Redis in parallel. Tune parameters in `stress_test.py`, `pubsub_stress_test.py` and `streaming_stress_test.py`, such that you can evaluate latency and throughput of your application.
 
 **Basic Stress Test:**
 
@@ -82,6 +82,18 @@ python image_consumer.py --model_path=${openvino model path, *.xml}
 Open another terminal and launch Stress Test.
 ```bash
 python stress_test.py --img_path=${image dir}
+```
+
+**Pub/Sub Stress Test:**
+
+Launch Image Consumer.
+```bash
+python pubsub_image_sub.py --model_path=${openvino model path, *.xml}
+```
+
+Open another terminal and launch Stress Test.
+```bash
+python pubsub_stress_test.py --img_path=${image dir}
 ```
 
 **Streaming Stress Test:**

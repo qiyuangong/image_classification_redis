@@ -23,7 +23,9 @@ def prepare_images(img_path):
 
 def push_to_redis(image_dicts):
     for image in image_dicts:
+        start_time = time.time()
         DB.rpush(settings.IMAGE_QUEUE, json.dumps(image))
+        print("* Push to Redis %d ms" % int(round((time.time() - start_time) * 1000)))
 
 
 def stress_test(image_dicts):

@@ -11,7 +11,7 @@ def push_to_redis_stream(image_dicts):
         print("* Push to Redis %d ms" % int(round((time.time() - start_time) * 1000)))
 
 
-def stress_stream_test(image_dicts):
+def stress_test_stream(image_dicts):
     for _ in range(ITERATION):
         for i in range(0, NUM_REQUESTS):
             # start a new thread to call the API
@@ -27,6 +27,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     images = prepare_images(args.img_path)
-    stress_stream_test(images)
+    stress_test_stream(images)
 
     time.sleep(3)

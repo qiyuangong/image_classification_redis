@@ -9,11 +9,9 @@ from os import listdir
 from os.path import isfile, join
 
 
-QUEUE = redis.StrictRedis(host=settings.REDIS_HOST,
+DB = redis.StrictRedis(host=settings.REDIS_HOST,
                        port=settings.REDIS_PORT, db=settings.REDIS_DB)
-
-QUEUE = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
-P = QUEUE.pubsub()
+pub = DB.pubsub()
 
 
 def image_enqueue(image_path):
@@ -26,7 +24,7 @@ def image_enqueue(image_path):
         # classification ID + image to the queue
         k = str(uuid.uuid4())
         d = {"id": k, "path": image_path, "image": image}
-        QUEUE.publish('channel', json.dumps(d))
+        pub.publish('channel', json.dumps(d))
         print("Push to redis %d ms" % int(round((time.time() - start_time) * 1000)))
 
 

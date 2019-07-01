@@ -42,7 +42,7 @@ def classify_process(model_path):
                 else:
                     batch = np.vstack([batch, image])
                 # update the list of image IDs
-                image_ids.append(q["id"])
+                image_ids.append(data["id"])
                 count += 1
         print("* Pop from redis %d ms" % int(round((time.time() - start_time) * 1000)))
         # check to see if we need to process the batch
