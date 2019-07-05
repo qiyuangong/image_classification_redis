@@ -13,8 +13,8 @@ An Image Classification example based on [Redis](https://redis.io/) and [Analyti
 
 **Basic Roles:**
 
-1. Message Queue: Redis.
-2. Image Producer (image_producer.py): Push images into Redis
+1. Message Queue: Redis
+2. Image Producer (image_producer.py): Push images into Redis.
 3. Image Consumer (image_consumer.py): Pop images from Redis, make prediction. Then, if necessary push results into Redis.
 
 ```bash
@@ -31,7 +31,7 @@ python image_producer.py --img_path=${image dir}
 **Basic Roles:**
 
 1. Message Queue: Redis.
-2. Image Pub (pubsub_image_pub.py): Publish images topic into Redis
+2. Image Pub (pubsub_image_pub.py): Publish images topic into Redis.
 3. Image Sub (pubsub_image_sub.py): Subscribe topic that contains images from Redis, make prediction. Then, if necessary push results into Redis.
 
 ```bash

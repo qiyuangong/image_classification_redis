@@ -8,7 +8,7 @@ pub = DB.pubsub()
 def publish_to_redis(image_dicts):
     for image in image_dicts:
         start_time = time.time()
-        pub.publish('channel', json.dumps(image))
+        pub.publish(settings.IMAGE_TOPIC, json.dumps(image))
         print("* Publish to Redis %d ms" % int(round((time.time() - start_time) * 1000)))
 
 

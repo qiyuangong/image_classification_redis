@@ -24,7 +24,7 @@ def image_enqueue(image_path):
         # classification ID + image to the queue
         k = str(uuid.uuid4())
         d = {"id": k, "path": image_path, "image": image}
-        pub.publish('channel', json.dumps(d))
+        pub.publish(settings.IMAGE_TOPIC, json.dumps(d))
         print("Push to redis %d ms" % int(round((time.time() - start_time) * 1000)))
 
 

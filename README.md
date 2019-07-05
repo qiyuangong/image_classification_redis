@@ -18,7 +18,7 @@ We prepare 2 examples with Scala and Python implementations.
 **Basic Roles:**
 
 1. Message Queue: Redis.
-2. Image Producer: Push images into Redis
+2. Image Producer: Push images into Redis.
 3. Image Consumer: Pop images from Redis, make prediction. Then, if necessary push results into Redis.
 
 # Pub/Sub Example
@@ -26,7 +26,7 @@ We prepare 2 examples with Scala and Python implementations.
 **Basic Roles:**
 
 1. Message Queue: Redis.
-2. Image Pub: Publish images topic into Redis
+2. Image Pub: Publish images topic into Redis.
 3. Image Sub: Subscribe topic that contains images from Redis, make prediction. Then, if necessary push results into Redis.
 
 # Streaming Example
@@ -34,13 +34,13 @@ We prepare 2 examples with Scala and Python implementations.
 **Additional Requirements:**
 
 1. [Spark 2.4.3](https://spark.apache.org/releases/spark-release-2-4-3.html)
-2. [spark-redis](https://github.com/RedisLabs/spark-redis) add to CLASSPATH or `pom.xml`.
+2. [Spark-redis](https://github.com/RedisLabs/spark-redis) add to CLASSPATH or `pom.xml`.
 3. Redis 5.0+ with [Redis Streams](https://redis.io/topics/streams-intro)
 
 **Basic Roles:**
 
-1. Streaming Queue: Redis Streams
-2. Image Producer: Push images into Redis
+1. Streaming Queue: Redis Streams.
+2. Image Producer: Push images into Redis.
 3. Streaming Image Consumer: Pop images from Redis, make prediction. Then, if necessary push results into Redis.
 
 # Reference
@@ -50,6 +50,7 @@ We prepare 2 examples with Scala and Python implementations.
 4. [Redis](https://redis.io/)
 5. [Redis Pub/Sub](https://redis.io/topics/pubsub)
 6. [Redis Streams](https://redis.io/topics/streams-intro)
-7. [Spark](https://spark.apache.org/)
-8. [Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
-9. [OpenVINO](https://software.intel.com/en-us/openvino-toolkit)
+7. [Spark-redis](https://github.com/RedisLabs/spark-redis)
+8. [Spark](https://spark.apache.org/)
+9. [Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
+10. [OpenVINO](https://software.intel.com/en-us/openvino-toolkit)

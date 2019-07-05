@@ -11,7 +11,7 @@ import argparse
 DB = redis.StrictRedis(host=settings.REDIS_HOST,
                        port=settings.REDIS_PORT, db=settings.REDIS_DB)
 pub = DB.pubsub()
-pub.subscribe('channel')
+pub.subscribe(settings.IMAGE_TOPIC)
 
 
 def classify_process(model_path):

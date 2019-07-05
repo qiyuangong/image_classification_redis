@@ -1,4 +1,4 @@
-# initialize Redis connection settings
+# Redis connection settings
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 REDIS_DB = 0
@@ -8,6 +8,7 @@ IMAGE_WIDTH = 224
 IMAGE_HEIGHT = 224
 RESIZE_MIN = 256
 IMAGE_CHANS = 3
+# Numpy/Mat format, e.g, uint8 or float
 IMAGE_DTYPE = "uint8"
 
 # Redis Message Queue parameter
@@ -19,4 +20,6 @@ CLIENT_SLEEP = 0.25
 
 # Redis Streaming
 IMAGE_STREAMING = "image_stream"
+# Pub/Sub Topic
+IMAGE_TOPIC = "image_topic"
 BLOCK = 1000
