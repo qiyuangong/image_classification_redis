@@ -1,6 +1,7 @@
 # Scala Image Classification with Redis
+
 An Image Classification example based on [Redis](https://redis.io/) and [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo). Redis serves as [Message Broker/Queue](https://en.wikipedia.org/wiki/Message_broker) in this example, such that we can scale-up with multiple producers and multiple consumers.
- 
+
 **Basic Requirements:**
 
 1. [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo)
@@ -10,7 +11,7 @@ An Image Classification example based on [Redis](https://redis.io/) and [Analyti
 5. Scala 2.11.8
 6. Python 3 and `pip install redis`
 
-# Basic Example
+## Basic Example
 
 **Basic Roles:**
 
@@ -25,11 +26,12 @@ java -cp ${ANALYTICS_ZOO_JAR}:${SPARK_HOME}/jars/* \
 ```
 
 Open another terminal
+
 ```bash
 python image_producer.py --img_path=${image dir} 
 ```
 
-# Streaming Example
+## Streaming Example
 
 **Additional Requirements:**
 
@@ -56,6 +58,7 @@ ${SPARK_HOME}/bin/spark-submit \
 ```
 
 Open another terminal
+
 ```bash
 python streaming_image_producer.py --img_path=${image dir} 
 ```

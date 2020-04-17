@@ -1,6 +1,9 @@
 # Image Classification with Redis
-An Image Classification example based on [Redis](https://redis.io/) and [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo). Redis serves as [Message Broker/Queue](https://en.wikipedia.org/wiki/Message_broker) in this example, such that we can scale-up with multiple producers and multiple consumers. Note that Redis can be replace with RabbitMQ, Kafka or MQ etc. 
- 
+
+An Image Classification example based on [Redis](https://redis.io/) and [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo). Redis serves as [Message Broker/Queue](https://en.wikipedia.org/wiki/Message_broker) in this example, such that we can scale-up with multiple producers and multiple consumers. Note that Redis can be replace with RabbitMQ, Kafka or MQ etc.
+
+If you are interested in production level user cases, pls refer to [Analytics-Zoo Cluster Serving](https://github.com/intel-analytics/analytics-zoo/tree/master/zoo/src/main/scala/com/intel/analytics/zoo/serving).
+
 We prepare 2 examples with Scala and Python implementations.
 
 1. [Python](https://github.com/qiyuangong/image_classification_redis/tree/master/python)
@@ -13,7 +16,7 @@ We prepare 2 examples with Scala and Python implementations.
 3. Pre-trained ResNet-50 model in OpenVINO format. You can get it from [Zoo OpenVINO example](https://github.com/intel-analytics/analytics-zoo/tree/master/zoo/src/main/scala/com/intel/analytics/zoo/examples/vnni/openvino) or [converting a TensorFlow Model with OpenVINO](https://docs.openvinotoolkit.org/latest/_docs_MO_DG_prepare_model_convert_model_Convert_Model_From_TensorFlow.html). Note that Zoo and Tensorflow models are also supported. You can load these models with Zoo after a few modifications.
 4. Several test images in JPEG format.
 
-# Basic Example
+## Basic Example
 
 **Basic Roles:**
 
@@ -21,7 +24,7 @@ We prepare 2 examples with Scala and Python implementations.
 2. Image Producer: Push images into Redis.
 3. Image Consumer: Pop images from Redis, make prediction. Then, if necessary push results into Redis.
 
-# Pub/Sub Example
+## Pub/Sub Example
 
 **Basic Roles:**
 
@@ -29,7 +32,7 @@ We prepare 2 examples with Scala and Python implementations.
 2. Image Pub: Publish images topic into Redis.
 3. Image Sub: Subscribe topic that contains images from Redis, make prediction. Then, if necessary push results into Redis.
 
-# Streaming Example
+## Streaming Example
 
 **Additional Requirements:**
 
@@ -43,7 +46,8 @@ We prepare 2 examples with Scala and Python implementations.
 2. Image Producer: Push images into Redis.
 3. Streaming Image Consumer: Pop images from Redis, make prediction. Then, if necessary push results into Redis.
 
-# Reference
+## Reference
+
 1. [Deep learning in production with Keras, Redis, Flask, and Apache](https://www.pyimagesearch.com/2018/02/05/deep-learning-production-keras-redis-flask-apache/)
 2. [Message Queue](https://en.wikipedia.org/wiki/Message_queue)
 3. [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo)

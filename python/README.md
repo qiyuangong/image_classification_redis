@@ -1,6 +1,7 @@
 # Python Image Classification with Redis
+
 An Image Classification example based on [Redis](https://redis.io/) and [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo). Redis serves as [Message Broker/Queue](https://en.wikipedia.org/wiki/Message_broker) in this example, such that we can scale-up with multiple producers and multiple consumers.
- 
+
 **Basic Requirements:**
 
 1. [Analytics-Zoo](https://github.com/intel-analytics/analytics-zoo)
@@ -9,7 +10,7 @@ An Image Classification example based on [Redis](https://redis.io/) and [Analyti
 4. Several test images in JPEG format.
 5. Python 3 and `pip install redis bigdl analytics-zoo pyspark`
 
-# Basic Example
+## Basic Example
 
 **Basic Roles:**
 
@@ -22,11 +23,12 @@ python image_consumer.py --model_path=${openvino model path, *.xml}
 ```
 
 Open another terminal
+
 ```bash
 python image_producer.py --img_path=${image dir}
 ```
 
-# Pub/Sub Example
+## Pub/Sub Example
 
 **Basic Roles:**
 
@@ -39,11 +41,12 @@ python image_sub.py --model_path=${openvino model path, *.xml}
 ```
 
 Open another terminal
+
 ```bash
 python image_pub.py --img_path=${image dir}
 ```
 
-# Streaming Example
+## Streaming Example
 
 **Additional Requirements:**
 
@@ -65,21 +68,25 @@ ${SPARK_HOME}/bin/spark-submit --master "local[*]" \
 ```
 
 Open another terminal
+
 ```bash
 python streaming_image_producer.py --img_path=${image dir}
 ```
 
-# Stress Test
+## Stress Test
+
 Launch multiple threads, and push images into Redis in parallel. Tune parameters in `stress_test.py`, `pubsub_stress_test.py` and `streaming_stress_test.py`, such that you can evaluate latency and throughput of your application.
 
 **Basic Stress Test:**
 
 Launch Image Consumer.
+
 ```bash
 python image_consumer.py --model_path=${openvino model path, *.xml}
 ```
 
 Open another terminal and launch Stress Test.
+
 ```bash
 python stress_test.py --img_path=${image dir}
 ```
@@ -87,11 +94,13 @@ python stress_test.py --img_path=${image dir}
 **Pub/Sub Stress Test:**
 
 Launch Image Consumer.
+
 ```bash
 python pubsub_image_sub.py --model_path=${openvino model path, *.xml}
 ```
 
 Open another terminal and launch Stress Test.
+
 ```bash
 python pubsub_stress_test.py --img_path=${image dir}
 ```
@@ -99,6 +108,7 @@ python pubsub_stress_test.py --img_path=${image dir}
 **Streaming Stress Test:**
 
 Launch Image Consumer.
+
 ```bash
 ${SPARK_HOME}/bin/spark-submit --master "local[*]" \
     --driver-memory 5g \
@@ -107,9 +117,11 @@ ${SPARK_HOME}/bin/spark-submit --master "local[*]" \
 ```
 
 Open another terminal and launch Streaming Stress Test.
+
 ```bash
 python streaming_stress_test.py --img_path=${image dir}
 ```
 
-# Configuration
+## Configuration
+
 Default configurations, i.e., queue name, batch size and image shape etc, are located in `settings.py`.
